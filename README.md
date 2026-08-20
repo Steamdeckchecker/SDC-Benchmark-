@@ -168,29 +168,6 @@ Das Projekt basiert auf dem offiziellen
 [Decky Plugin Template](https://github.com/SteamDeckHomebrew/decky-plugin-template)
 und verwendet `@decky/ui` sowie `@decky/api`.
 
-### Frontend bauen
-
-```bash
-pnpm install
-pnpm run build
-```
-
-Das kompilierte Frontend wird unter `dist/index.js` abgelegt. Zusätzliche
-Python-Module befinden sich entsprechend der Decky-Paketstruktur im Ordner
-`py_modules`.
-
-### Projektstruktur
-
-```text
-sdc-benchmark/
-├── assets/                 # Logo-Dateien
-├── dist/                   # Kompiliertes Decky-Frontend
-├── py_modules/             # Gamescope-Client und PNG-Renderer
-├── src/                    # React-/TypeScript-Frontend
-├── main.py                 # Python-Backend
-├── plugin.json             # Decky-Metadaten
-└── package.json            # Build-Konfiguration
-```
 
 ## Datenschutz
 
