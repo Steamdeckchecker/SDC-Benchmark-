@@ -1,99 +1,211 @@
-# Decky Plugin Template [![Chat](https://img.shields.io/badge/chat-on%20discord-7289da.svg)](https://deckbrew.xyz/discord)
+<p align="center">
+  <img src="assets/sdc-benchmark-logo.png" alt="SDC Benchmark Logo" width="220">
+</p>
 
-Reference example for using [decky-frontend-lib](https://github.com/SteamDeckHomebrew/decky-frontend-lib) (@decky/ui) in a [decky-loader](https://github.com/SteamDeckHomebrew/decky-loader) plugin.
+<h1 align="center">SDC Benchmark</h1>
 
-### **Please also refer to the [wiki](https://wiki.deckbrew.xyz/en/user-guide/home#plugin-development) for important information on plugin development and submissions/updates. currently documentation is split between this README and the wiki which is something we are hoping to rectify in the future.**  
+<p align="center">
+  Ein Decky-Loader-Plugin für echte FPS- und Frametime-Benchmarks auf dem Steam Deck.
+</p>
 
-## Developers
+<p align="center">
+  <img src="https://img.shields.io/badge/Version-1.3.0-6f42c1" alt="Version 1.3.0">
+  <img src="https://img.shields.io/badge/Plattform-Steam%20Deck-1a9fff" alt="Steam Deck">
+  <img src="https://img.shields.io/badge/Lizenz-BSD--3--Clause-green" alt="BSD-3-Clause License">
+</p>
 
-### Dependencies
+## Über das Plugin
 
-This template relies on the user having Node.js v16.14+ and `pnpm` (v9) installed on their system.  
-Please make sure to install pnpm v9 to prevent issues with CI during plugin submission.  
-`pnpm` can be downloaded from `npm` itself which is recommended.
+**SDC Benchmark** zeichnet während des Spielens die von Gamescope gemeldeten
+Frametimes auf und berechnet daraus die realen FPS-Werte. Nach Abschluss eines
+Benchmarks erstellt das Plugin automatisch eine detaillierte CSV-Datei und
+einen übersichtlichen PNG-Bericht.
 
-#### Linux
+Die Messung erfolgt direkt im SteamOS-Gaming-Modus. MangoHud, `matplotlib`,
+NumPy, Pillow oder zusätzliche Python-Pakete werden nicht benötigt.
+
+## Funktionen
+
+- Erfassung echter FPS- und Frametime-Werte über Gamescope
+- Benchmark-Dauer von 30 Sekunden bis 6 Minuten
+- Einstellung in 30-Sekunden-Schritten
+- Fünf Sekunden Startverzögerung zum Wechseln ins Spiel
+- Live-Anzeige von Status, Restzeit und Anzahl der erfassten Frames
+- Akustisches Signal beim Start und Abschluss der Messung
+- Automatischer CSV-Export aller erfassten Frames
+- Automatischer PNG-Bericht im Format 1280 × 720 Pixel
+- Vorschau des zuletzt erzeugten PNG-Berichts direkt im Decky-Plugin
+- SDC-Benchmark-Logo im generierten Bericht
+- Keine Internetverbindung und keine externen Python-Abhängigkeiten erforderlich
+
+## Voraussetzungen
+
+- Steam Deck mit SteamOS
+- Aktueller [Decky Loader](https://decky.xyz/)
+- SteamOS-Gaming-Modus mit Gamescope-Control-Schnittstelle ab Version 6
+- Ein gestartetes und fokussiertes Spiel
+
+> [!IMPORTANT]
+> Beim Ende des fünfsekündigen Countdowns muss das zu messende Spiel fokussiert
+> sein. Andernfalls kann Gamescope keine passenden Frame-Daten liefern.
+
+## Installation
+
+### Installation über Decky Loader
+
+1. Die aktuelle ZIP-Datei aus dem Bereich **Releases** herunterladen.
+2. In den Decky-Einstellungen den Entwicklermodus aktivieren.
+3. Im Entwickler-Menü **Install Plugin from ZIP File** auswählen.
+4. Die heruntergeladene ZIP-Datei installieren.
+5. Decky Loader beziehungsweise Steam neu starten.
+
+### Manuelle Installation
+
+1. Einen Ordner namens `sdc-benchmark` unter folgendem Pfad anlegen:
+
+   ```text
+   /home/deck/homebrew/plugins/sdc-benchmark
+   ```
+
+2. Den Inhalt des Distributionsarchivs in diesen Ordner entpacken.
+3. Steam beziehungsweise das Steam Deck neu starten.
+
+## Verwendung
+
+1. Das gewünschte Spiel starten.
+2. Das Quick-Access-Menü öffnen und **SDC Benchmark** auswählen.
+3. Die Benchmark-Dauer zwischen 30 Sekunden und 6 Minuten einstellen.
+4. **Starten** auswählen.
+5. Innerhalb des fünfsekündigen Countdowns zurück ins Spiel wechseln.
+6. Das Spiel bis zum akustischen Abschlusssignal normal spielen.
+7. Den Bericht anschließend über **Letztes PNG anzeigen** im Plugin öffnen.
+
+Ein laufender Benchmark kann jederzeit über **Abbrechen** beendet werden.
+
+## Ausgabedateien
+
+Alle Berichte werden im Download-Ordner des Deck-Benutzers gespeichert:
+
+```text
+/home/deck/Downloads
+```
+
+Die Dateinamen enthalten Datum und Uhrzeit der Messung:
+
+```text
+benchmark_2026-08-20_18-30-00.csv
+benchmark_2026-08-20_18-30-00.png
+```
+
+### CSV-Datei
+
+Die CSV-Datei enthält für jeden von Gamescope gemeldeten Frame folgende Werte:
+
+| Spalte | Beschreibung |
+| --- | --- |
+| `Timestamp_s` | Zeitpunkt seit Beginn des Benchmarks in Sekunden |
+| `FPS` | Aus der Frametime berechnete Bildrate |
+| `Frametime_ms` | Zeit des Frames in Millisekunden |
+
+Die Datei lässt sich beispielsweise mit Microsoft Excel, LibreOffice Calc oder
+Google Sheets weiterverarbeiten.
+
+### PNG-Bericht
+
+Der automatisch erzeugte Bericht enthält:
+
+- FPS- und Frametime-Verlauf
+- durchschnittliche FPS
+- 1-%-Low-FPS
+- P99-Frametime
+- maximale Frametime
+- Messdauer und Anzahl der erfassten Frames
+- verwendete Messquelle
+- SDC-Benchmark-Logo
+
+Der PNG-Renderer ist vollständig im Plugin enthalten und basiert ausschließlich
+auf der Python-Standardbibliothek.
+
+## Messmethode
+
+Gamescope stellt über sein privates Wayland-Control-Protokoll die Zeit zwischen
+zwei präsentierten Frames in Nanosekunden bereit. SDC Benchmark wandelt diese
+Werte in Millisekunden um und berechnet daraus die FPS:
+
+```text
+FPS = 1000 / Frametime in Millisekunden
+```
+
+Dadurch werden keine simulierten Platzhalterwerte verwendet. Aufgezeichnet
+werden die Daten der Anwendung, die beim Start der Messung in Gamescope
+fokussiert ist.
+
+## Fehlerbehebung
+
+### Der Benchmark bleibt bei „Initialisiere …“ stehen
+
+- Prüfen, ob Decky Loader und das Plugin aktuell sind.
+- Decky Loader beziehungsweise Steam neu starten.
+- Sicherstellen, dass das Plugin vollständig installiert wurde und
+  `main.py`, `py_modules` sowie `dist/index.js` vorhanden sind.
+
+### Gamescope liefert keine Frames
+
+- Den Benchmark im SteamOS-Gaming-Modus ausführen.
+- Vor Ablauf des Countdowns zurück in das gestartete Spiel wechseln.
+- Overlays oder Menüs schließen, die den Fokus vom Spiel übernehmen könnten.
+- SteamOS auf eine aktuelle Version aktualisieren.
+
+### Es wird kein PNG-Bericht erzeugt
+
+Ein PNG wird nur erstellt, wenn Gamescope mindestens einen gültigen Frame
+geliefert hat. Die CSV-Datei und eine mögliche Fehlermeldung werden im Plugin
+angezeigt.
+
+## Entwicklung und Build
+
+Das Projekt basiert auf dem offiziellen
+[Decky Plugin Template](https://github.com/SteamDeckHomebrew/decky-plugin-template)
+und verwendet `@decky/ui` sowie `@decky/api`.
+
+### Frontend bauen
 
 ```bash
-sudo npm i -g pnpm@9
+pnpm install
+pnpm run build
 ```
 
-If you would like to build plugins that have their own custom backends, Docker is required as it is used by the Decky CLI tool.
+Das kompilierte Frontend wird unter `dist/index.js` abgelegt. Zusätzliche
+Python-Module befinden sich entsprechend der Decky-Paketstruktur im Ordner
+`py_modules`.
 
-### Making your own plugin
+### Projektstruktur
 
-1. You can fork this repo or utilize the "Use this template" button on Github.
-2. In your local fork/own plugin-repository run these commands:
-   1. ``pnpm i``
-   2. ``pnpm run build``
-   - These setup pnpm and build the frontend code for testing.
-3. Consult the [decky-frontend-lib](https://github.com/SteamDeckHomebrew/decky-frontend-lib) repository for ways to accomplish your tasks.
-   - Documentation and examples are still rough, 
-   - Decky loader primarily targets Steam Deck hardware so keep this in mind when developing your plugin.
-4. If using VSCodium/VSCode, run the `setup` and `build` and `deploy` tasks. If not using VSCodium etc. you can derive your own makefile or just manually utilize the scripts for these commands as you see fit.
-
-If you use VSCode or it's derivatives (we suggest [VSCodium](https://vscodium.com/)!) just run the `setup` and `build` tasks. It's really that simple.
-
-#### Other important information
-
-Everytime you change the frontend code (`index.tsx` etc) you will need to rebuild using the commands from step 2 above or the build task if you're using vscode or a derivative.
-
-Note: If you are receiving build errors due to an out of date library, you should run this command inside of your repository:
-
-```bash
-pnpm update @decky/ui --latest
+```text
+sdc-benchmark/
+├── assets/                 # Logo-Dateien
+├── dist/                   # Kompiliertes Decky-Frontend
+├── py_modules/             # Gamescope-Client und PNG-Renderer
+├── src/                    # React-/TypeScript-Frontend
+├── main.py                 # Python-Backend
+├── plugin.json             # Decky-Metadaten
+└── package.json            # Build-Konfiguration
 ```
 
-### Backend support
+## Datenschutz
 
-If you are developing with a backend for a plugin and would like to submit it to the [decky-plugin-database](https://github.com/SteamDeckHomebrew/decky-plugin-database) you will need to have all backend code located in ``backend/src``, with backend being located in the root of your git repository.
-When building your plugin, the source code will be built and any finished binary or binaries will be output to ``backend/out`` (which is created during CI.)
-If your buildscript, makefile or any other build method does not place the binary files in the ``backend/out`` directory they will not be properly picked up during CI and your plugin will not have the required binaries included for distribution.
+SDC Benchmark arbeitet vollständig lokal. Das Plugin überträgt weder
+Benchmark-Daten noch andere Informationen an externe Server.
 
-Example:  
-In our makefile used to demonstrate the CI process of building and distributing a plugin backend, note that the makefile explicitly creates the `out` folder (``backend/out``) and then compiles the binary into that folder. Here's the relevant snippet.
+## Lizenz
 
-```make
-hello:
-	mkdir -p ./out
-	gcc -o ./out/hello ./src/main.c
-```
+Dieses Projekt wird unter der [BSD-3-Clause-Lizenz](LICENSE) veröffentlicht.
+Teile der verwendeten Gamescope-Protokolldefinition basieren auf
+`gamescope-control.xml` von Valve Corporation. Weitere Hinweise befinden sich
+in der Lizenzdatei.
 
-The CI does create the `out` folder itself but we recommend creating it yourself if possible during your build process to ensure the build process goes smoothly.
+---
 
-Note: When locally building your plugin it will be placed into a folder called 'out' this is different from the concept described above.
-
-The out folder is not sent to the final plugin, but is then put into a ``bin`` folder which is found at the root of the plugin's directory.  
-More information on the bin folder can be found below in the distribution section below.
-
-### Distribution
-
-We recommend following the instructions found in the [decky-plugin-database](https://github.com/SteamDeckHomebrew/decky-plugin-database) on how to get your plugin up on the plugin store. This is the best way to get your plugin in front of users.
-You can also choose to do distribution via a zip file containing the needed files, if that zip file is uploaded to a URL it can then be downloaded and installed via decky-loader.
-
-Layout of a plugin zip ready for distribution:
-```
-pluginname-v1.0.0.zip (version number is optional but recommended for users sake)
-   |
-   pluginname/ <directory>
-   |  |  |
-   |  |  bin/ <directory> (optional)
-   |  |     |
-   |  |     binary (optional)
-   |  |
-   |  dist/ <directory> [required]
-   |      |
-   |      index.js [required]
-   | 
-   package.json [required]
-   plugin.json [required]
-   main.py {required if you are using the python backend of decky-loader: serverAPI}
-   README.md (optional but recommended)
-   LICENSE(.md) [required, filename should be roughly similar, suffix not needed]
-```
-
-Note regarding licenses: Including a license is required for the plugin store if your chosen license requires the license to be included alongside usage of source-code/binaries!
-
-Standard procedure for licenses is to have your chosen license at the top of the file, and to leave the original license for the plugin-template at the bottom. If this is not the case on submission to the plugin database, you will be asked to fix this discrepancy.
-
-We cannot and will not distribute your plugin on the Plugin Store if it's license requires it's inclusion but you have not included a license to be re-distributed with your plugin in the root of your git repository.
+<p align="center">
+  Entwickelt von <strong>Fabian Petrusky</strong> für die Steam-Deck-Community.
+</p>
