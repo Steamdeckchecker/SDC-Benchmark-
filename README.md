@@ -38,7 +38,7 @@ NumPy, Pillow oder zusätzliche Python-Pakete werden nicht benötigt.
 - SDC-Benchmark-Logo im generierten Bericht
 - Keine Internetverbindung und keine externen Python-Abhängigkeiten erforderlich
 - 
-<img src="assets/<img src="assets/screenshot.png" alt="screen" >
+<img src="assets/screenshot.jpeg" alt="screen" >
 <img src="assets/benchmark_2026-08-21_09-27-03.png" alt="Screenshot" >
 
 
