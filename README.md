@@ -37,6 +37,10 @@ NumPy, Pillow oder zusätzliche Python-Pakete werden nicht benötigt.
 - Vorschau des zuletzt erzeugten PNG-Berichts direkt im Decky-Plugin
 - SDC-Benchmark-Logo im generierten Bericht
 - Keine Internetverbindung und keine externen Python-Abhängigkeiten erforderlich
+- 
+<img src="assets/<img src="assets/sdc-benchmark-logo.png" alt="SDC Benchmark Logo" width="220">" alt="Screenshot2" width="220">
+<img src="assets/benchmark_2026-08-21_09-27-03.png" alt="Screenshot" width="220">
+
 
 ## Voraussetzungen
 
