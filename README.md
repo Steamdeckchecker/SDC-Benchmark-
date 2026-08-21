@@ -5,188 +5,184 @@
 <h1 align="center">SDC Benchmark</h1>
 
 <p align="center">
-  Ein Decky-Loader-Plugin für echte FPS- und Frametime-Benchmarks auf dem Steam Deck.
+  A Decky Loader plugin for real FPS and frametime benchmarks on the Steam Deck.
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Version-1.3.0-6f42c1" alt="Version 1.3.0">
-  <img src="https://img.shields.io/badge/Plattform-Steam%20Deck-1a9fff" alt="Steam Deck">
-  <img src="https://img.shields.io/badge/Lizenz-BSD--3--Clause-green" alt="BSD-3-Clause License">
+  <img src="https://img.shields.io/badge/Platform-Steam%20Deck-1a9fff" alt="Steam Deck">
+  <img src="https://img.shields.io/badge/License-BSD--3--Clause-green" alt="BSD-3-Clause License">
 </p>
 
-## Über das Plugin
+## About the Plugin
 
-**SDC Benchmark** zeichnet während des Spielens die von Gamescope gemeldeten
-Frametimes auf und berechnet daraus die realen FPS-Werte. Nach Abschluss eines
-Benchmarks erstellt das Plugin automatisch eine detaillierte CSV-Datei und
-einen übersichtlichen PNG-Bericht.
+**SDC Benchmark** records the frametimes reported by Gamescope while you play
+and calculates the actual FPS values from them. After a benchmark is completed,
+the plugin automatically generates a detailed CSV file and a clear PNG report.
 
-Die Messung erfolgt direkt im SteamOS-Gaming-Modus. MangoHud, `matplotlib`,
-NumPy, Pillow oder zusätzliche Python-Pakete werden nicht benötigt.
+Measurements are taken directly in SteamOS Gaming Mode. MangoHud, <code>matplotlib</code>,
+NumPy, Pillow, and additional Python packages are not required.
 
-## Funktionen
+## Features
 
-- Erfassung echter FPS- und Frametime-Werte über Gamescope
-- Benchmark-Dauer von 30 Sekunden bis 6 Minuten
-- Einstellung in 30-Sekunden-Schritten
-- Fünf Sekunden Startverzögerung zum Wechseln ins Spiel
-- Live-Anzeige von Status, Restzeit und Anzahl der erfassten Frames
-- Akustisches Signal beim Start und Abschluss der Messung
-- Automatischer CSV-Export aller erfassten Frames
-- Automatischer PNG-Bericht im Format 1280 × 720 Pixel
-- Vorschau des zuletzt erzeugten PNG-Berichts direkt im Decky-Plugin
-- SDC-Benchmark-Logo im generierten Bericht
-- Keine Internetverbindung und keine externen Python-Abhängigkeiten erforderlich
-- 
-<img src="assets/screenshot.jpeg" alt="screen" >
-<img src="assets/benchmark_2026-08-21_09-27-03.png" alt="Screenshot" >
+- Captures real FPS and frametime values via Gamescope
+- Benchmark duration from 30 seconds to 6 minutes
+- Adjustable in 30-second increments
+- Five-second start delay for switching back to the game
+- Live display of the status, remaining time, and number of captured frames
+- Audio signal when the measurement starts and finishes
+- Automatic CSV export of all captured frames
+- Automatic PNG report at a resolution of 1280 × 720 pixels
+- Preview of the most recently generated PNG report directly in the Decky plugin
+- SDC Benchmark logo embedded in the generated report
+- No internet connection or external Python dependencies required
 
+<img src="assets/screenshot.jpeg" alt="Plugin screenshot">
+<img src="assets/benchmark_2026-08-21_09-27-03.png" alt="Benchmark report">
 
-## Voraussetzungen
+## Requirements
 
-- Steam Deck mit SteamOS
-- Aktueller [Decky Loader](https://decky.xyz/)
-- SteamOS-Gaming-Modus mit Gamescope-Control-Schnittstelle ab Version 6
-- Ein gestartetes und fokussiertes Spiel
+- Steam Deck running SteamOS
+- Current version of [Decky Loader](https://decky.xyz/)
+- SteamOS Gaming Mode with Gamescope Control interface version 6 or later
+- A running and focused game
 
 > [!IMPORTANT]
-> Beim Ende des fünfsekündigen Countdowns muss das zu messende Spiel fokussiert
-> sein. Andernfalls kann Gamescope keine passenden Frame-Daten liefern.
+> The game you want to measure must be focused when the five-second countdown
+> ends. Otherwise, Gamescope may not be able to provide the relevant frame data.
 
 ## Installation
 
-### Installation über Decky Loader
+### Installation via Decky Loader
 
-1. Die aktuelle ZIP-Datei aus dem Bereich **Releases** herunterladen.
-2. In den Decky-Einstellungen den Entwicklermodus aktivieren.
-3. Im Entwickler-Menü **Install Plugin from ZIP File** auswählen.
-4. Die heruntergeladene ZIP-Datei installieren.
-5. Decky Loader beziehungsweise Steam neu starten.
+1. Download the latest ZIP file from the **Releases** section.
+2. Enable Developer Mode in the Decky settings.
+3. Select **Install Plugin from ZIP File** in the Developer menu.
+4. Install the downloaded ZIP file.
+5. Restart Decky Loader or Steam.
 
-### Manuelle Installation
+### Manual Installation
 
-1. Einen Ordner namens `sdc-benchmark` unter folgendem Pfad anlegen:
+1. Create a folder named <code>sdc-benchmark</code> at the following path:
 
-   ```text
+   ~~~text
    /home/deck/homebrew/plugins/sdc-benchmark
-   ```
+   ~~~
 
-2. Den Inhalt des Distributionsarchivs in diesen Ordner entpacken.
-3. Steam beziehungsweise das Steam Deck neu starten.
+2. Extract the contents of the distribution archive into this folder.
+3. Restart Steam or the Steam Deck.
 
-## Verwendung
+## Usage
 
-1. Das gewünschte Spiel starten.
-2. Das Quick-Access-Menü öffnen und **SDC Benchmark** auswählen.
-3. Die Benchmark-Dauer zwischen 30 Sekunden und 6 Minuten einstellen.
-4. **Starten** auswählen.
-5. Innerhalb des fünfsekündigen Countdowns zurück ins Spiel wechseln.
-6. Das Spiel bis zum akustischen Abschlusssignal normal spielen.
-7. Den Bericht anschließend über **Letztes PNG anzeigen** im Plugin öffnen.
+1. Launch the game you want to benchmark.
+2. Open the Quick Access Menu and select **SDC Benchmark**.
+3. Set the benchmark duration between 30 seconds and 6 minutes.
+4. Select **Start**.
+5. Switch back to the game before the five-second countdown ends.
+6. Play normally until you hear the completion signal.
+7. Open the report afterward by selecting **Show Last PNG** in the plugin.
 
-Ein laufender Benchmark kann jederzeit über **Abbrechen** beendet werden.
+A running benchmark can be stopped at any time by selecting **Cancel**.
 
-## Ausgabedateien
+## Output Files
 
-Alle Berichte werden im Download-Ordner des Deck-Benutzers gespeichert:
+All reports are saved in the Deck user's Downloads folder:
 
-```text
+~~~text
 /home/deck/Downloads
-```
+~~~
 
-Die Dateinamen enthalten Datum und Uhrzeit der Messung:
+The filenames contain the date and time of the measurement:
 
-```text
+~~~text
 benchmark_2026-08-20_18-30-00.csv
 benchmark_2026-08-20_18-30-00.png
-```
+~~~
 
-### CSV-Datei
+### CSV File
 
-Die CSV-Datei enthält für jeden von Gamescope gemeldeten Frame folgende Werte:
+The CSV file contains the following values for every frame reported by Gamescope:
 
-| Spalte | Beschreibung |
+| Column | Description |
 | --- | --- |
-| `Timestamp_s` | Zeitpunkt seit Beginn des Benchmarks in Sekunden |
-| `FPS` | Aus der Frametime berechnete Bildrate |
-| `Frametime_ms` | Zeit des Frames in Millisekunden |
+| <code>Timestamp_s</code> | Time since the start of the benchmark in seconds |
+| <code>FPS</code> | Frame rate calculated from the frametime |
+| <code>Frametime_ms</code> | Duration of the frame in milliseconds |
 
-Die Datei lässt sich beispielsweise mit Microsoft Excel, LibreOffice Calc oder
-Google Sheets weiterverarbeiten.
+The file can be processed further using Microsoft Excel, LibreOffice Calc, or
+Google Sheets, for example.
 
-### PNG-Bericht
+### PNG Report
 
-Der automatisch erzeugte Bericht enthält:
+The automatically generated report includes:
 
-- FPS- und Frametime-Verlauf
-- durchschnittliche FPS
-- 1-%-Low-FPS
-- P99-Frametime
-- maximale Frametime
-- Messdauer und Anzahl der erfassten Frames
-- verwendete Messquelle
-- SDC-Benchmark-Logo
+- FPS and frametime graphs
+- Average FPS
+- 1% low FPS
+- P99 frametime
+- Maximum frametime
+- Measurement duration and number of captured frames
+- Measurement source used
+- SDC Benchmark logo
 
-Der PNG-Renderer ist vollständig im Plugin enthalten und basiert ausschließlich
-auf der Python-Standardbibliothek.
+The PNG renderer is included entirely within the plugin and relies exclusively
+on the Python standard library.
 
-## Messmethode
+## Measurement Method
 
-Gamescope stellt über sein privates Wayland-Control-Protokoll die Zeit zwischen
-zwei präsentierten Frames in Nanosekunden bereit. SDC Benchmark wandelt diese
-Werte in Millisekunden um und berechnet daraus die FPS:
+Gamescope provides the time between two presented frames in nanoseconds through
+its private Wayland Control protocol. SDC Benchmark converts these values into
+milliseconds and calculates the FPS:
 
-```text
-FPS = 1000 / Frametime in Millisekunden
-```
+~~~text
+FPS = 1000 / frametime in milliseconds
+~~~
 
-Dadurch werden keine simulierten Platzhalterwerte verwendet. Aufgezeichnet
-werden die Daten der Anwendung, die beim Start der Messung in Gamescope
-fokussiert ist.
+This means that no simulated placeholder values are used. The plugin records
+data from the application that is focused in Gamescope when the measurement
+starts.
 
-## Fehlerbehebung
+## Troubleshooting
 
-### Der Benchmark bleibt bei „Initialisiere …“ stehen
+### The Benchmark Remains Stuck on “Initializing …”
 
-- Prüfen, ob Decky Loader und das Plugin aktuell sind.
-- Decky Loader beziehungsweise Steam neu starten.
-- Sicherstellen, dass das Plugin vollständig installiert wurde und
-  `main.py`, `py_modules` sowie `dist/index.js` vorhanden sind.
+- Check that Decky Loader and the plugin are up to date.
+- Restart Decky Loader or Steam.
+- Make sure the plugin was installed completely and that <code>main.py</code>,
+  <code>py_modules</code>, and <code>dist/index.js</code> are present.
 
-### Gamescope liefert keine Frames
+### Gamescope Does Not Provide Any Frames
 
-- Den Benchmark im SteamOS-Gaming-Modus ausführen.
-- Vor Ablauf des Countdowns zurück in das gestartete Spiel wechseln.
-- Overlays oder Menüs schließen, die den Fokus vom Spiel übernehmen könnten.
-- SteamOS auf eine aktuelle Version aktualisieren.
+- Run the benchmark in SteamOS Gaming Mode.
+- Switch back to the running game before the countdown ends.
+- Close overlays or menus that might take focus away from the game.
+- Update SteamOS to a current version.
 
-### Es wird kein PNG-Bericht erzeugt
+### No PNG Report Is Generated
 
-Ein PNG wird nur erstellt, wenn Gamescope mindestens einen gültigen Frame
-geliefert hat. Die CSV-Datei und eine mögliche Fehlermeldung werden im Plugin
-angezeigt.
+A PNG is generated only if Gamescope provides at least one valid frame. The CSV
+file and any available error message are displayed in the plugin.
 
-## Entwicklung und Build
+## Development and Build
 
-Das Projekt basiert auf dem offiziellen
+The project is based on the official
 [Decky Plugin Template](https://github.com/SteamDeckHomebrew/decky-plugin-template)
-und verwendet `@decky/ui` sowie `@decky/api`.
+and uses <code>@decky/ui</code> and <code>@decky/api</code>.
 
+## Privacy
 
-## Datenschutz
+SDC Benchmark operates entirely locally. The plugin does not transmit benchmark
+data or any other information to external servers.
 
-SDC Benchmark arbeitet vollständig lokal. Das Plugin überträgt weder
-Benchmark-Daten noch andere Informationen an externe Server.
+## License
 
-## Lizenz
-
-Dieses Projekt wird unter der [BSD-3-Clause-Lizenz](LICENSE) veröffentlicht.
-Teile der verwendeten Gamescope-Protokolldefinition basieren auf
-`gamescope-control.xml` von Valve Corporation. Weitere Hinweise befinden sich
-in der Lizenzdatei.
+This project is released under the [BSD 3-Clause License](LICENSE). Parts of the
+Gamescope protocol definitions used by the plugin are based on
+<code>gamescope-control.xml</code> by Valve Corporation. Additional information
+can be found in the license file.
 
 ---
 
 <p align="center">
-  Entwickelt von <strong>Fabian Petrusky</strong> für die Steam-Deck-Community.
+  Developed by <strong>Fabian Petrusky</strong> for the Steam Deck community.
 </p>
