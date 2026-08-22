@@ -1,7 +1,7 @@
 {
   "name": "sdc-benchmark",
-  "version": "1.3.0",
-  "description": "Decky benchmark tool with Gamescope capture and dependency-free PNG reports",
+  "version": "1.4.0",
+  "description": "Multilingual Decky benchmark tool with Gamescope capture and dependency-free PNG reports",
   "type": "module",
   "scripts": {
     "build": "rollup -c",

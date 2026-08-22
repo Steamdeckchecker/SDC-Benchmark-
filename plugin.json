@@ -5,7 +5,7 @@
   "api_version": 1,
   "publish": {
     "tags": ["benchmark", "performance"],
-    "description": "Gamescope benchmark with per-frame metrics, CSV and PNG reports.",
+    "description": "Multilingual Gamescope benchmark with per-frame metrics, CSV and PNG reports.",
     "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
   }
 }

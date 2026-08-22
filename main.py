@@ -17,8 +17,52 @@ PY_MODULES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "py_mo
 if PY_MODULES_DIR not in sys.path:
     sys.path.insert(0, PY_MODULES_DIR)
 
-from gamescope_metrics import GamescopeMetricsError, GamescopeMetricsReader
+from gamescope_metrics import GamescopeMetricsReader
 from png_chart import generate_benchmark_png
+
+
+SUPPORTED_LANGUAGES = {"de", "en", "es", "fr"}
+
+
+class BenchmarkRuntimeError(RuntimeError):
+    def __init__(self, code, message):
+        super().__init__(message)
+        self.code = code
+
+
+def _classify_error(error):
+    if isinstance(error, BenchmarkRuntimeError):
+        return error.code
+
+    message = str(error).lower()
+    if "systembibliothek" in message or "system library" in message:
+        return "missing_library"
+    if "kein spiel fokussiert" in message or "keine fokussierte" in message:
+        return "no_focused_game"
+    if (
+        "keine gamescope-wayland" in message
+        or "gamescope-x11-anzeige" in message
+        or "gaming-modus" in message
+    ):
+        return "gaming_mode_required"
+    if "zu alt" in message:
+        return "gamescope_too_old"
+    if "getrennt" in message:
+        return "connection_lost"
+    if "keine frames" in message:
+        return "no_frames"
+    if any(
+        fragment in message
+        for fragment in (
+            "gamescope-control",
+            "performance-abfragen",
+            "gamescope antwortet nicht",
+            "gamescope-initialisierung",
+            "wayland-registry",
+        )
+    ):
+        return "gamescope_unavailable"
+    return "benchmark_failed"
 
 
 class Plugin:
@@ -31,7 +75,9 @@ class Plugin:
         self.last_csv_path = ""
         self.last_png_path = ""
         self.last_error = ""
+        self.last_error_code = ""
         self.measurement_source = "Gamescope"
+        self.report_language = "de"
         self.sample_count = 0
         self.downloads_dir = os.path.join(decky.DECKY_USER_HOME, "Downloads")
         self.logo_path = os.path.join(
@@ -41,7 +87,7 @@ class Plugin:
         )
 
     async def _main(self):
-        decky.logger.info("SDC Benchmark 1.3.0 initialisiert.")
+        decky.logger.info("SDC Benchmark 1.4.0 initialized.")
 
     async def _unload(self):
         self.is_running = False
@@ -49,20 +95,29 @@ class Plugin:
             self.benchmark_thread.join(timeout=1.5)
         decky.logger.info("SDC Benchmark entladen.")
 
-    async def start_benchmark(self, duration: int = 60):
+    async def start_benchmark(self, duration: int = 60, language: str = "de"):
         if self.is_running:
-            return {"status": "error", "message": "Läuft bereits"}
+            return {
+                "status": "error",
+                "error_code": "already_running",
+                "message": "The benchmark is already running.",
+            }
 
         duration = max(30, min(360, int(duration)))
         duration = max(30, min(360, ((duration + 15) // 30) * 30))
+        language = str(language).lower().split("-")[0]
+        if language not in SUPPORTED_LANGUAGES:
+            language = "en"
         self.is_running = True
         self.status = "Countdown"
         self.countdown = 5
         self.time_left = duration
         self.last_error = ""
+        self.last_error_code = ""
         self.last_csv_path = ""
         self.last_png_path = ""
         self.measurement_source = "Gamescope"
+        self.report_language = language
         self.sample_count = 0
 
         self.benchmark_thread = threading.Thread(
@@ -89,6 +144,7 @@ class Plugin:
             "last_csv": self.last_csv_path,
             "last_png": self.last_png_path,
             "error": self.last_error,
+            "error_code": self.last_error_code,
             "source": self.measurement_source,
             "sample_count": self.sample_count,
         }
@@ -99,7 +155,8 @@ class Plugin:
         if not png_path or not os.path.isfile(png_path):
             return {
                 "status": "error",
-                "message": "Es wurde noch kein PNG-Bericht erzeugt.",
+                "error_code": "no_report",
+                "message": "No PNG report has been created yet.",
             }
 
         # Deckys Plugin-Socket ist auf 1 MiB begrenzt. Die stdlib-Berichte sind
@@ -107,7 +164,8 @@ class Plugin:
         if os.path.getsize(png_path) > 700_000:
             return {
                 "status": "error",
-                "message": "Der PNG-Bericht ist für die Vorschau zu groß.",
+                "error_code": "preview_too_large",
+                "message": "The PNG report is too large to preview.",
             }
 
         with open(png_path, "rb") as png_file:
@@ -186,7 +244,8 @@ class Plugin:
                 return
 
             if not data_points:
-                raise GamescopeMetricsError(
+                raise BenchmarkRuntimeError(
+                    "no_frames",
                     "Gamescope hat keine Frames geliefert. Bitte sicherstellen, "
                     "dass beim Start ein Spiel fokussiert ist."
                 )
@@ -207,6 +266,7 @@ class Plugin:
             self.time_left = 0
             self.status = "Error"
             self.last_error = str(error)
+            self.last_error_code = _classify_error(error)
             decky.logger.exception("Benchmark fehlgeschlagen")
         finally:
             if metrics_reader:
@@ -220,6 +280,7 @@ class Plugin:
                 output_png_path,
                 source=self.measurement_source,
                 logo_path=self.logo_path,
+                language=self.report_language,
             )
             return True
         except Exception as error:
