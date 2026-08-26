@@ -30,7 +30,7 @@ NumPy, Pillow, and additional Python packages are not required.
 - Adjustable in 30-second increments
 - Five-second start delay for switching back to the game
 - Live display of the status, remaining time, and number of captured frames
-- Audio signal when the measurement starts and finishes
+- Audio signal and toast message when the measurement starts and finishes
 - Automatic CSV export of all captured frames
 - Automatic PNG report at a resolution of 1280 × 720 pixels
 - Preview of the most recently generated PNG report directly in the Decky plugin
