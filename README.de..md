@@ -31,7 +31,7 @@ NumPy, Pillow oder zusätzliche Python-Pakete werden nicht benötigt.
 - Einstellung in 30-Sekunden-Schritten
 - Fünf Sekunden Startverzögerung zum Wechseln ins Spiel
 - Live-Anzeige von Status, Restzeit und Anzahl der erfassten Frames
-- Akustisches Signal beim Start und Abschluss der Messung
+- Akustisches Signal und Benachrichtigung beim Start und Abschluss der Messung
 - Automatischer CSV-Export aller erfassten Frames
 - Automatischer PNG-Bericht im Format 1280 × 720 Pixel
 - Vorschau des zuletzt erzeugten PNG-Berichts direkt im Decky-Plugin
