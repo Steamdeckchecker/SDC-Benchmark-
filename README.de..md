@@ -33,11 +33,11 @@ NumPy, Pillow oder zusätzliche Python-Pakete werden nicht benötigt.
 - Live-Anzeige von Status, Restzeit und Anzahl der erfassten Frames
 - Akustisches Signal und Benachrichtigung beim Start und Abschluss der Messung
 - Automatischer CSV-Export aller erfassten Frames
-- Automatischer PNG-Bericht im Format 1280 × 720 Pixel
+- Automatischer PNG-Bericht im klassischen PC-Gaming-Benchmark-Stil (1280 × 720)
 - Vorschau des zuletzt erzeugten PNG-Berichts direkt im Decky-Plugin
 - SDC-Benchmark-Logo im generierten Bericht
 - Keine Internetverbindung und keine externen Python-Abhängigkeiten erforderlich
-- 
+
 <img src="assets/screenshot.jpeg" alt="screen" >
 <img src="assets/benchmark_2026-08-21_09-27-03.png" alt="Screenshot" >
 
@@ -118,13 +118,12 @@ Google Sheets weiterverarbeiten.
 
 Der automatisch erzeugte Bericht enthält:
 
-- FPS- und Frametime-Verlauf
-- durchschnittliche FPS
-- 1-%-Low-FPS
-- P99-Frametime
-- maximale Frametime
-- Messdauer und Anzahl der erfassten Frames
-- verwendete Messquelle
+- Eigenständiges Frametime-Diagramm mit hervorgehobenen Ausreißern
+- Referenzlinien für 60 FPS / 16,7 ms und 30 FPS / 33,3 ms
+- Horizontale FPS-Balken für P95, Durchschnitt, P5, P1, 1-%-Low, 0,1-%-Low und Minimum
+- Frame-Verteilung für 60+ FPS, 30–60 FPS und unter 30 FPS
+- Durchschnitts-FPS, 1-%-Low, 0,1-%-Low, P99- und maximale Frametime
+- Messdauer, Frame-Anzahl, Quelle und Erstellungsdatum
 - SDC-Benchmark-Logo
 
 Der PNG-Renderer ist vollständig im Plugin enthalten und basiert ausschließlich
