@@ -87,7 +87,7 @@ class Plugin:
         )
 
     async def _main(self):
-        decky.logger.info("SDC Benchmark 1.6.1 initialized.")
+        decky.logger.info("SDC Benchmark 1.7.0 initialized.")
 
     async def _unload(self):
         self.is_running = False
