@@ -5,6 +5,7 @@ import datetime
 import math
 import os
 import struct
+import unicodedata
 import zlib
 
 
@@ -57,6 +58,11 @@ FONT = {
     "|": (4, 4, 4, 4, 4, 4, 4),
     "+": (0, 4, 4, 31, 4, 4, 0),
     "<": (1, 2, 4, 8, 4, 2, 1),
+    "&": (12, 18, 20, 8, 21, 18, 13),
+    "'": (12, 12, 8, 0, 0, 0, 0),
+    "!": (4, 4, 4, 4, 4, 0, 4),
+    "?": (14, 17, 1, 2, 4, 0, 4),
+    "_": (0, 0, 0, 0, 0, 0, 31),
 }
 
 BACKGROUND = (25, 25, 28)
@@ -121,9 +127,10 @@ TRANSLATIONS = {
 
 
 class Canvas:
-    def __init__(self, width, height, color=BACKGROUND):
+    def __init__(self, width, height, color=BACKGROUND, render_scale=1.0):
         self.width = width
         self.height = height
+        self.render_scale = max(0.1, float(render_scale))
         self.pixels = bytearray(bytes(color) * (width * height))
 
     def set_pixel(self, x, y, color):
@@ -131,7 +138,7 @@ class Canvas:
             offset = (y * self.width + x) * 3
             self.pixels[offset:offset + 3] = bytes(color)
 
-    def fill_rect(self, x, y, width, height, color):
+    def _fill_rect_pixels(self, x, y, width, height, color):
         x0, y0 = max(0, int(x)), max(0, int(y))
         x1, y1 = min(self.width, int(x + width)), min(self.height, int(y + height))
         if x1 <= x0 or y1 <= y0:
@@ -141,6 +148,12 @@ class Canvas:
             offset = (py * self.width + x0) * 3
             self.pixels[offset:offset + len(row)] = row
 
+    def fill_rect(self, x, y, width, height, color):
+        scale = self.render_scale
+        x0, y0 = int(round(x * scale)), int(round(y * scale))
+        x1, y1 = int(round((x + width) * scale)), int(round((y + height) * scale))
+        self._fill_rect_pixels(x0, y0, x1 - x0, y1 - y0, color)
+
     def rect(self, x, y, width, height, color, thickness=1):
         self.fill_rect(x, y, width, thickness, color)
         self.fill_rect(x, y + height - thickness, width, thickness, color)
@@ -148,12 +161,21 @@ class Canvas:
         self.fill_rect(x + width - thickness, y, thickness, height, color)
 
     def line(self, x0, y0, x1, y1, color, thickness=1):
-        x0, y0, x1, y1 = map(lambda value: int(round(value)), (x0, y0, x1, y1))
+        scale = self.render_scale
+        x0, y0, x1, y1 = map(lambda value: int(round(value * scale)), (x0, y0, x1, y1))
         dx, sx = abs(x1 - x0), 1 if x0 < x1 else -1
         dy, sy = -abs(y1 - y0), 1 if y0 < y1 else -1
-        error, radius = dx + dy, max(0, thickness // 2)
+        error = dx + dy
+        pixel_thickness = max(1, int(round(thickness * scale)))
+        radius = pixel_thickness // 2
         while True:
-            self.fill_rect(x0 - radius, y0 - radius, radius * 2 + 1, radius * 2 + 1, color)
+            self._fill_rect_pixels(
+                x0 - radius,
+                y0 - radius,
+                pixel_thickness,
+                pixel_thickness,
+                color,
+            )
             if x0 == x1 and y0 == y1:
                 break
             doubled = 2 * error
@@ -176,6 +198,10 @@ class Canvas:
             self.line(*points[index - 1], *points[index], color, thickness)
 
     def donut(self, center_x, center_y, radius, thickness, segments):
+        scale = self.render_scale
+        center_x, center_y = int(round(center_x * scale)), int(round(center_y * scale))
+        radius = max(1, int(round(radius * scale)))
+        thickness = max(1, int(round(thickness * scale)))
         inner = max(0, radius - thickness)
         total = sum(max(0.0, value) for value, _ in segments)
         if total <= 0:
@@ -198,7 +224,10 @@ class Canvas:
                     self.set_pixel(px, py, color)
 
     def blit_rgb(self, pixels, source_width, source_height, x, y, width, height):
-        x, y, width, height = int(x), int(y), max(1, int(width)), max(1, int(height))
+        scale = self.render_scale
+        x, y = int(round(x * scale)), int(round(y * scale))
+        width = max(1, int(round(width * scale)))
+        height = max(1, int(round(height * scale)))
         for target_y in range(height):
             source_y = min(source_height - 1, target_y * source_height // height)
             canvas_y = y + target_y
@@ -324,6 +353,27 @@ def _format_number(value, decimals=1):
     return f"{value:.{decimals}f}"
 
 
+def _normalize_display_text(value):
+    """Converts arbitrary Steam titles into characters supported by the bitmap font."""
+    text = str(value or "").replace("–", "-").replace("—", "-").replace("’", "'")
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+    supported = []
+    for character in text.upper():
+        supported.append(character if character in FONT else " ")
+    return " ".join("".join(supported).split())
+
+
+def _fit_text(canvas, value, max_width, scale):
+    """Truncates a title without allowing it to overlap the report edges."""
+    text = _normalize_display_text(value)
+    if canvas.text_width(text, scale) <= max_width:
+        return text
+    suffix = "..."
+    while text and canvas.text_width(text + suffix, scale) > max_width:
+        text = text[:-1].rstrip()
+    return text + suffix
+
+
 def _panel(canvas, x, y, width, height, title):
     canvas.fill_rect(x, y, width, height, PANEL)
     canvas.fill_rect(x, y, width, 3, BLUE)
@@ -348,8 +398,15 @@ def _downsample(cleaned, plot_width):
     return [(index, total / count, maximum) for index, (total, count, maximum) in enumerate(buckets) if count]
 
 
-def generate_benchmark_png(data_points, output_path, source="Gamescope", logo_path=None, language="en"):
-    """Create a 1280x720 benchmark report using only the Python standard library."""
+def generate_benchmark_png(
+    data_points,
+    output_path,
+    source="Gamescope",
+    logo_path=None,
+    language="en",
+    game_name="",
+):
+    """Create a 1920x1080 benchmark report using only the Python standard library."""
     cleaned = []
     for point in data_points:
         try:
@@ -393,7 +450,7 @@ def generate_benchmark_png(data_points, output_path, source="Gamescope", logo_pa
         (sum(1 for fps in fps_values if fps < 30) * 100.0 / count, RED, "<30 FPS"),
     ]
 
-    canvas = Canvas(1280, 720)
+    canvas = Canvas(1920, 1080, render_scale=1.5)
     canvas.fill_rect(0, 0, 1280, 72, HEADER)
     canvas.fill_rect(0, 70, 1280, 2, BLUE)
     if logo_path and os.path.isfile(logo_path):
@@ -402,10 +459,14 @@ def generate_benchmark_png(data_points, output_path, source="Gamescope", logo_pa
             canvas.blit_rgb(logo_pixels, logo_width, logo_height, 14, 5, 62, 62)
         except (OSError, ValueError):
             pass
-    canvas.text(92, 14, labels["title"], TEXT, scale=3)
+    report_title = labels["title"]
+    if game_name:
+        report_title += " | " + str(game_name)
+    report_title = _fit_text(canvas, report_title, 1160, scale=3)
+    canvas.text(92, 14, report_title, TEXT, scale=3)
     canvas.text(92, 45, f"{source} | {duration:.1f} S | {len(cleaned)} FRAMES", MUTED, scale=1)
     created_at = datetime.datetime.now().strftime("%Y-%m-%d | %H:%M:%S")
-    canvas.text(1254, 27, created_at, MUTED, scale=1, align="right")
+    canvas.text(1254, 45, created_at, MUTED, scale=1, align="right")
 
     left_x, left_width = 18, 912
     sidebar_x, sidebar_width = 946, 316
@@ -441,12 +502,13 @@ def generate_benchmark_png(data_points, output_path, source="Gamescope", logo_pa
             canvas.dashed_line(plot_left, y, plot_right, y, color)
             canvas.text(plot_right - 8, y - 12, text_value, color, scale=1, align="right")
 
-    sampled, average_points = _downsample(cleaned, plot_width), []
+    sampled = _downsample(cleaned, int(plot_width * canvas.render_scale))
+    average_points = []
     for column, average, maximum in sampled:
-        x = plot_left + column
+        x = plot_left + column / canvas.render_scale
         average_y = plot_bottom - min(average, axis_max) / axis_max * plot_height
         maximum_y = plot_bottom - min(maximum, axis_max) / axis_max * plot_height
-        canvas.fill_rect(x, average_y, 1, plot_bottom - average_y, BLUE_FILL)
+        canvas.fill_rect(x, average_y, 1.0 / canvas.render_scale, plot_bottom - average_y, BLUE_FILL)
         if maximum > average * 1.35:
             canvas.line(x, maximum_y, x, average_y, RED)
         average_points.append((x, average_y))
