@@ -1,11 +1,15 @@
 import base64
 import csv
 import datetime
+import glob
 import math
 import os
+import re
+import struct
 import sys
 import threading
 import time
+import zlib
 
 import decky
 
@@ -22,6 +26,166 @@ from png_chart import generate_benchmark_png
 
 
 SUPPORTED_LANGUAGES = {"de", "en", "es", "fr"}
+
+
+def _decode_vdf_string(value):
+    """Decodes the escaping used by Steam's text VDF files."""
+    return value.replace("\\\\", "\\").replace('\\"', '"').strip()
+
+
+def _steam_roots(user_home):
+    """Returns possible Steam installation roots without requiring Steam APIs."""
+    candidates = [
+        os.environ.get("STEAM_COMPAT_CLIENT_INSTALL_PATH", ""),
+        os.path.join(user_home, ".steam", "steam"),
+        os.path.join(user_home, ".local", "share", "Steam"),
+    ]
+    roots = []
+    seen = set()
+    for candidate in candidates:
+        if not candidate:
+            continue
+        normalized = os.path.realpath(os.path.expanduser(candidate))
+        if normalized not in seen and os.path.isdir(normalized):
+            seen.add(normalized)
+            roots.append(normalized)
+    return roots
+
+
+def _steamapps_directories(user_home):
+    """Discovers internal and external Steam libraries, including microSD cards."""
+    directories = []
+    seen = set()
+
+    def add(path):
+        normalized = os.path.realpath(os.path.expanduser(path))
+        if normalized not in seen and os.path.isdir(normalized):
+            seen.add(normalized)
+            directories.append(normalized)
+
+    for steam_root in _steam_roots(user_home):
+        default_steamapps = os.path.join(steam_root, "steamapps")
+        add(default_steamapps)
+        library_file = os.path.join(default_steamapps, "libraryfolders.vdf")
+        try:
+            with open(library_file, "r", encoding="utf-8", errors="replace") as handle:
+                library_text = handle.read()
+            paths = re.findall(r'"path"\s+"((?:\\.|[^"\\])*)"', library_text)
+            paths.extend(
+                re.findall(
+                    r'^\s*"\d+"\s+"((?:\\.|[^"\\])*)"\s*$',
+                    library_text,
+                    flags=re.MULTILINE,
+                )
+            )
+            for library_path in paths:
+                add(os.path.join(_decode_vdf_string(library_path), "steamapps"))
+        except OSError:
+            pass
+
+    # These fallbacks cover common SteamOS/Bazzite removable-media layouts if
+    # libraryfolders.vdf is temporarily unavailable.
+    for pattern in (
+        "/run/media/*/steamapps",
+        "/run/media/*/*/steamapps",
+        "/run/media/deck/*/steamapps",
+    ):
+        for path in glob.glob(pattern):
+            add(path)
+    return directories
+
+
+def _manifest_game_name(app_id, user_home):
+    for steamapps in _steamapps_directories(user_home):
+        manifest_path = os.path.join(steamapps, f"appmanifest_{app_id}.acf")
+        try:
+            with open(manifest_path, "r", encoding="utf-8", errors="replace") as handle:
+                manifest = handle.read()
+        except OSError:
+            continue
+        match = re.search(r'"name"\s+"((?:\\.|[^"\\])*)"', manifest)
+        if match:
+            name = _decode_vdf_string(match.group(1))
+            if name:
+                return name
+    return ""
+
+
+def _read_binary_vdf_string(data, offset):
+    end = data.find(b"\x00", offset)
+    if end < 0:
+        raise ValueError("Unterminated binary VDF string")
+    return data[offset:end].decode("utf-8", errors="replace"), end + 1
+
+
+def _read_binary_vdf_object(data, offset=0, depth=0):
+    """Reads the small KeyValues subset used by Steam shortcuts.vdf."""
+    if depth > 12:
+        raise ValueError("Binary VDF nesting is too deep")
+    result = {}
+    while offset < len(data):
+        value_type = data[offset]
+        offset += 1
+        if value_type == 8:
+            return result, offset
+        key, offset = _read_binary_vdf_string(data, offset)
+        if value_type == 0:
+            value, offset = _read_binary_vdf_object(data, offset, depth + 1)
+        elif value_type == 1:
+            value, offset = _read_binary_vdf_string(data, offset)
+        elif value_type == 2:
+            if offset + 4 > len(data):
+                raise ValueError("Truncated binary VDF integer")
+            value = struct.unpack_from("<i", data, offset)[0]
+            offset += 4
+        elif value_type == 7:
+            if offset + 8 > len(data):
+                raise ValueError("Truncated binary VDF integer64")
+            value = struct.unpack_from("<Q", data, offset)[0]
+            offset += 8
+        else:
+            raise ValueError(f"Unsupported binary VDF type: {value_type}")
+        result[key] = value
+    return result, offset
+
+
+def _shortcut_game_name(app_id, user_home):
+    for steam_root in _steam_roots(user_home):
+        pattern = os.path.join(steam_root, "userdata", "*", "config", "shortcuts.vdf")
+        for shortcut_path in glob.glob(pattern):
+            try:
+                with open(shortcut_path, "rb") as handle:
+                    parsed, _offset = _read_binary_vdf_object(handle.read())
+            except (OSError, ValueError, struct.error):
+                continue
+            shortcuts = parsed.get("shortcuts", parsed)
+            if not isinstance(shortcuts, dict):
+                continue
+            for shortcut in shortcuts.values():
+                if not isinstance(shortcut, dict):
+                    continue
+                name = str(shortcut.get("appname", "")).strip()
+                executable = str(shortcut.get("exe", ""))
+                explicit_id = shortcut.get("appid")
+                candidate_ids = set()
+                if isinstance(explicit_id, int):
+                    candidate_ids.add(explicit_id & 0xFFFFFFFF)
+                if name:
+                    generated_id = zlib.crc32((executable + name).encode("utf-8"))
+                    candidate_ids.add(generated_id | 0x80000000)
+                if app_id in candidate_ids and name:
+                    return name
+    return ""
+
+
+def _resolve_game_name(app_id, user_home):
+    """Resolves a Gamescope app ID locally and always returns a usable label."""
+    normalized_id = int(app_id) & 0xFFFFFFFF
+    return (
+        _manifest_game_name(normalized_id, user_home)
+        or _shortcut_game_name(normalized_id, user_home)
+        or f"Steam App {normalized_id}"
+    )
 
 
 class BenchmarkRuntimeError(RuntimeError):
@@ -78,6 +242,7 @@ class Plugin:
         self.last_error_code = ""
         self.measurement_source = "Gamescope"
         self.report_language = "de"
+        self.game_name = ""
         self.sample_count = 0
         self.downloads_dir = os.path.join(decky.DECKY_USER_HOME, "Downloads")
         self.logo_path = os.path.join(
@@ -87,7 +252,7 @@ class Plugin:
         )
 
     async def _main(self):
-        decky.logger.info("SDC Benchmark 1.7.0 initialized.")
+        decky.logger.info("SDC Benchmark 1.7.1 initialized.")
 
     async def _unload(self):
         self.is_running = False
@@ -118,6 +283,7 @@ class Plugin:
         self.last_png_path = ""
         self.measurement_source = "Gamescope"
         self.report_language = language
+        self.game_name = ""
         self.sample_count = 0
 
         self.benchmark_thread = threading.Thread(
@@ -146,6 +312,7 @@ class Plugin:
             "error": self.last_error,
             "error_code": self.last_error_code,
             "source": self.measurement_source,
+            "game_name": self.game_name,
             "sample_count": self.sample_count,
         }
 
@@ -192,6 +359,10 @@ class Plugin:
             self.time_left = duration
 
             app_id = GamescopeMetricsReader.get_focused_app_id()
+            self.game_name = _resolve_game_name(app_id, decky.DECKY_USER_HOME)
+            decky.logger.info(
+                f"Benchmark target: {self.game_name} (Gamescope app ID {app_id})"
+            )
             metrics_reader = GamescopeMetricsReader()
             metrics_reader.start(app_id)
 
@@ -281,6 +452,7 @@ class Plugin:
                 source=self.measurement_source,
                 logo_path=self.logo_path,
                 language=self.report_language,
+                game_name=self.game_name,
             )
             return True
         except Exception as error:
