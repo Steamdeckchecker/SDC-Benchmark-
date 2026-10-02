@@ -14,6 +14,10 @@
   <img src="https://img.shields.io/badge/Lizenz-BSD--3--Clause-green" alt="BSD-3-Clause License">
 </p>
 
+<p align="center">
+  Deutsch · <a href="README.en.md">English</a> · <a href="CHANGELOG_DE.md">Änderungsverlauf</a>
+</p>
+
 ## Über das Plugin
 
 **SDC Benchmark** zeichnet während des Spielens die von Gamescope gemeldeten
@@ -35,6 +39,9 @@ NumPy, Pillow oder zusätzliche Python-Pakete werden nicht benötigt.
 - Automatischer CSV-Export aller erfassten Frames
 - Automatischer Full-HD-PNG-Bericht im klassischen PC-Gaming-Benchmark-Stil (1920 × 1080)
 - Erkannter Spielname in der Berichtsüberschrift (`SDC BENCHMARK | SPIELNAME`)
+- Lokale Titelerkennung für Steam-Spiele auf dem internen Speicher und in
+  zusätzlichen Bibliotheken einschließlich microSD-Karten
+- Titelerkennung für Steam-fremde Verknüpfungen mit `Steam App <ID>` als Fallback
 - Vorschau des zuletzt erzeugten PNG-Berichts direkt im Decky-Plugin
 - SDC-Benchmark-Logo im generierten Bericht
 - Keine Internetverbindung und keine externen Python-Abhängigkeiten erforderlich
@@ -119,17 +126,32 @@ Google Sheets weiterverarbeiten.
 
 Der automatisch erzeugte Bericht enthält:
 
+- Native Full-HD-Ausgabe mit 1920 × 1080 Pixeln
+- Kopfzeile im Format `SDC BENCHMARK | SPIELNAME`
 - Eigenständiges Frametime-Diagramm mit hervorgehobenen Ausreißern
 - Referenzlinien für 60 FPS / 16,7 ms und 30 FPS / 33,3 ms
 - Horizontale FPS-Balken für P95, Durchschnitt, P5, P1, 1-%-Low, 0,1-%-Low und Minimum
 - Frame-Verteilung für 60+ FPS, 30–60 FPS und unter 30 FPS
 - Durchschnitts-FPS, 1-%-Low, 0,1-%-Low, P99- und maximale Frametime
 - Messdauer, Frame-Anzahl, Quelle und Erstellungsdatum
-- Erkannter Titel des Steam- oder Nicht-Steam-Spiels in der Kopfzeile
 - SDC-Benchmark-Logo
 
 Der PNG-Renderer ist vollständig im Plugin enthalten und basiert ausschließlich
 auf der Python-Standardbibliothek.
+
+### Erkennung des Spielnamens
+
+Beim Start eines Benchmarks verwendet das Plugin die Gamescope-App-ID der
+fokussierten Anwendung, um das gemessene Spiel zu identifizieren. Dabei werden
+Steam-Manifeste auf dem internen Speicher und in zusätzlichen
+Steam-Bibliotheken einschließlich microSD-Karten durchsucht. Steam-fremde
+Verknüpfungen werden über die lokal gespeicherten Steam-Verknüpfungsdaten
+zugeordnet.
+
+Kann kein passender Titel ermittelt werden, zeigt der Bericht `Steam App <ID>`
+an. Lange Namen und nicht unterstützte Sonderzeichen werden automatisch
+angepasst, damit die Kopfzeile lesbar bleibt und keine anderen Elemente
+überlagert. Für die Titelerkennung wird kein Onlinedienst verwendet.
 
 ## Messmethode
 
