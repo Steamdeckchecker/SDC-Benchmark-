@@ -38,7 +38,7 @@ NumPy, Pillow, and additional Python packages are not required.
 - No internet connection or external Python dependencies required
 
 <img src="assets/screenshot.jpeg" alt="Plugin screenshot">
-<img src="assets/benchmark_2026-08-21_09-27-03.png" alt="Benchmark report">
+<img src="assets/benchmark_2026-08-21_09-27-032.png" alt="Benchmark report">
 
 ## Requirements
 
