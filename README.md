@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.3.0-6f42c1" alt="Version 1.3.0">
+  <img src="https://img.shields.io/badge/Version-1.7.1-6f42c1" alt="Version 1.7.1">
   <img src="https://img.shields.io/badge/Platform-Steam%20Deck-1a9fff" alt="Steam Deck">
   <img src="https://img.shields.io/badge/License-BSD--3--Clause-green" alt="BSD-3-Clause License">
 </p>
@@ -32,7 +32,8 @@ NumPy, Pillow, and additional Python packages are not required.
 - Live display of the status, remaining time, and number of captured frames
 - Audio signal and toast message when the measurement starts and finishes
 - Automatic CSV export of all captured frames
-- Automatic 1280 × 720 PNG report in a classic PC-gaming benchmark layout
+- Automatic Full HD PNG report (1920 × 1080) in a classic PC-gaming benchmark layout
+- Detected game title in the report header (`SDC BENCHMARK | GAME TITLE`)
 - Preview of the most recently generated PNG report directly in the Decky plugin
 - SDC Benchmark logo embedded in the generated report
 - No internet connection or external Python dependencies required
@@ -122,6 +123,7 @@ The automatically generated report includes:
 - Frame distribution for 60+ FPS, 30–60 FPS, and below 30 FPS
 - Average FPS, 1% low, 0.1% low, P99 frametime, and maximum frametime
 - Measurement duration, frame count, source, and creation date
+- Detected Steam or non-Steam game title in the header
 - SDC Benchmark logo
 
 The PNG renderer is included entirely within the plugin and relies exclusively
