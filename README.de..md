@@ -9,9 +9,13 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.3.0-6f42c1" alt="Version 1.3.0">
+  <img src="https://img.shields.io/badge/Version-1.7.1-6f42c1" alt="Version 1.7.1">
   <img src="https://img.shields.io/badge/Plattform-Steam%20Deck-1a9fff" alt="Steam Deck">
   <img src="https://img.shields.io/badge/Lizenz-BSD--3--Clause-green" alt="BSD-3-Clause License">
+</p>
+
+<p align="center">
+  Deutsch · <a href="README.en.md">English</a> · <a href="CHANGELOG_DE.md">Änderungsverlauf</a>
 </p>
 
 ## Über das Plugin
@@ -33,11 +37,15 @@ NumPy, Pillow oder zusätzliche Python-Pakete werden nicht benötigt.
 - Live-Anzeige von Status, Restzeit und Anzahl der erfassten Frames
 - Akustisches Signal und Benachrichtigung beim Start und Abschluss der Messung
 - Automatischer CSV-Export aller erfassten Frames
-- Automatischer PNG-Bericht im Format 1280 × 720 Pixel
+- Automatischer Full-HD-PNG-Bericht im klassischen PC-Gaming-Benchmark-Stil (1920 × 1080)
+- Erkannter Spielname in der Berichtsüberschrift (`SDC BENCHMARK | SPIELNAME`)
+- Lokale Titelerkennung für Steam-Spiele auf dem internen Speicher und in
+  zusätzlichen Bibliotheken einschließlich microSD-Karten
+- Titelerkennung für Steam-fremde Verknüpfungen mit `Steam App <ID>` als Fallback
 - Vorschau des zuletzt erzeugten PNG-Berichts direkt im Decky-Plugin
 - SDC-Benchmark-Logo im generierten Bericht
 - Keine Internetverbindung und keine externen Python-Abhängigkeiten erforderlich
-- 
+
 <img src="assets/screenshot.jpeg" alt="screen" >
 <img src="assets/benchmark_2026-08-21_09-27-03.png" alt="Screenshot" >
 
@@ -118,17 +126,32 @@ Google Sheets weiterverarbeiten.
 
 Der automatisch erzeugte Bericht enthält:
 
-- FPS- und Frametime-Verlauf
-- durchschnittliche FPS
-- 1-%-Low-FPS
-- P99-Frametime
-- maximale Frametime
-- Messdauer und Anzahl der erfassten Frames
-- verwendete Messquelle
+- Native Full-HD-Ausgabe mit 1920 × 1080 Pixeln
+- Kopfzeile im Format `SDC BENCHMARK | SPIELNAME`
+- Eigenständiges Frametime-Diagramm mit hervorgehobenen Ausreißern
+- Referenzlinien für 60 FPS / 16,7 ms und 30 FPS / 33,3 ms
+- Horizontale FPS-Balken für P95, Durchschnitt, P5, P1, 1-%-Low, 0,1-%-Low und Minimum
+- Frame-Verteilung für 60+ FPS, 30–60 FPS und unter 30 FPS
+- Durchschnitts-FPS, 1-%-Low, 0,1-%-Low, P99- und maximale Frametime
+- Messdauer, Frame-Anzahl, Quelle und Erstellungsdatum
 - SDC-Benchmark-Logo
 
 Der PNG-Renderer ist vollständig im Plugin enthalten und basiert ausschließlich
 auf der Python-Standardbibliothek.
+
+### Erkennung des Spielnamens
+
+Beim Start eines Benchmarks verwendet das Plugin die Gamescope-App-ID der
+fokussierten Anwendung, um das gemessene Spiel zu identifizieren. Dabei werden
+Steam-Manifeste auf dem internen Speicher und in zusätzlichen
+Steam-Bibliotheken einschließlich microSD-Karten durchsucht. Steam-fremde
+Verknüpfungen werden über die lokal gespeicherten Steam-Verknüpfungsdaten
+zugeordnet.
+
+Kann kein passender Titel ermittelt werden, zeigt der Bericht `Steam App <ID>`
+an. Lange Namen und nicht unterstützte Sonderzeichen werden automatisch
+angepasst, damit die Kopfzeile lesbar bleibt und keine anderen Elemente
+überlagert. Für die Titelerkennung wird kein Onlinedienst verwendet.
 
 ## Messmethode
 
