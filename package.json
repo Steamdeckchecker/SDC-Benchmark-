@@ -1,6 +1,6 @@
 {
   "name": "sdc-benchmark",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Multilingual Decky benchmark tool with Gamescope capture and CapFrameX-inspired PNG reports",
   "type": "module",
   "scripts": {
